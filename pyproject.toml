@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "citeground"
+version = "0.1.0"
+description = "Citation-grounded RAG over a public filing-style corpus, with hybrid retrieval and a reproducible evaluation harness."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Sydney Ani" }]
+keywords = [
+    "rag",
+    "retrieval-augmented-generation",
+    "evaluation",
+    "fastapi",
+    "hybrid-search",
+]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "fastapi>=0.115",
+    "httpx>=0.27",
+    "jinja2>=3.1",
+    "numpy>=1.26",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "uvicorn>=0.32",
+]
+
+[project.optional-dependencies]
+ui = ["streamlit>=1.40"]
+vector = ["faiss-cpu>=1.8"]
+dev = ["pytest>=8.3", "ruff>=0.7"]
+
+[project.scripts]
+citeground-ingest = "citeground.cli.ingest:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+citeground = ["api/static/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "ui"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B011"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
