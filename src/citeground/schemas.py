@@ -56,14 +56,27 @@ class ScoredChunk(BaseModel):
 
 
 class Usage(BaseModel):
+    """Token counts and a cost figure.
+
+    `cost_basis` says how `cost_usd` was produced. Offline providers report
+    zero cost. OpenAI runs multiply provider-reported tokens by the list
+    prices in settings, which are estimates, not an invoice.
+    """
+
     prompt_tokens: int = 0
     completion_tokens: int = 0
     embedding_tokens: int = 0
     cost_usd: float = 0.0
+    cost_basis: str = "offline-zero"
 
     @property
     def total_tokens(self) -> int:
         return self.prompt_tokens + self.completion_tokens + self.embedding_tokens
+
+
+class StageTiming(BaseModel):
+    name: str
+    duration_ms: float
 
 
 class Citation(BaseModel):
@@ -88,3 +101,4 @@ class AnswerResult(BaseModel):
     trace_id: str
     latency_ms: float
     abstained: bool = False
+    stages: list[StageTiming] = Field(default_factory=list)

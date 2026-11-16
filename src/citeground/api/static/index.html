@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CiteGround</title>
+  <style>
+    :root {
+      --paper: #f4efe4;
+      --paper-2: #fffaf1;
+      --ink: #1b2430;
+      --muted: #5c6673;
+      --line: #ddd4c4;
+      --pine: #0f5e57;
+      --pine-ink: #e7f4f2;
+      --rust: #8a3d1d;
+      --rust-bg: #f6e6dc;
+      --shadow: 0 16px 40px rgba(27, 36, 48, 0.06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1200px 400px at 10% -10%, #fff, transparent 50%),
+        var(--paper);
+      color: var(--ink);
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 80px; }
+    header { display: grid; gap: 8px; margin-bottom: 28px; }
+    .kicker {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: var(--pine);
+      font-weight: 700;
+    }
+    h1 { margin: 0; font-size: clamp(36px, 5vw, 56px); font-weight: 560; letter-spacing: -0.03em; line-height: 1.05; }
+    .lede { margin: 0; max-width: 62ch; color: var(--muted); font-size: 18px; }
+    .banner {
+      margin-top: 14px;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      background: var(--rust-bg);
+      color: var(--rust);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 12px;
+    }
+    .panel {
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    label { display: block; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    textarea {
+      width: 100%;
+      min-height: 96px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: 16px/1.45 ui-sans-serif, system-ui, sans-serif;
+      color: var(--ink);
+      background: white;
+    }
+    textarea:focus { outline: 2px solid var(--pine); border-color: transparent; }
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-top: 12px; }
+    .field { display: flex; flex-direction: column; }
+    select, input[type="number"] {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font: 14px ui-sans-serif, system-ui, sans-serif;
+    }
+    button.ask {
+      margin-left: auto;
+      background: var(--pine);
+      color: var(--pine-ink);
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font: 600 14px ui-sans-serif, system-ui, sans-serif;
+      cursor: pointer;
+    }
+    button.ask:disabled { opacity: 0.6; cursor: progress; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .chips button {
+      border: 1px solid var(--line);
+      background: transparent;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font: 13px ui-sans-serif, system-ui, sans-serif;
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .chips button:hover { border-color: var(--pine); color: var(--pine); }
+    .result { margin-top: 22px; display: grid; gap: 16px; }
+    .answer {
+      font-size: 20px;
+      line-height: 1.45;
+    }
+    button.cite {
+      border: 0;
+      background: var(--pine);
+      color: white;
+      border-radius: 6px;
+      padding: 0 6px;
+      font: 600 12px ui-sans-serif, system-ui, sans-serif;
+      cursor: pointer;
+      vertical-align: 1px;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .meta span { border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; background: white; }
+    .error {
+      background: var(--rust-bg);
+      color: var(--rust);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+    }
+    .passages { display: grid; gap: 10px; }
+    article.passage {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: white;
+    }
+    article.passage h3 { margin: 0 0 4px; font-size: 16px; }
+    article.passage p { margin: 8px 0 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px; }
+    .passage .id { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; color: var(--muted); }
+    .empty { color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; }
+    footer { margin-top: 28px; color: var(--muted); font-size: 13px; font-family: ui-sans-serif, system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="kicker">CiteGround</p>
+      <h1>Ask the filings. Keep the citation.</h1>
+      <p class="lede">Answers are written only from passages retrieved out of the Helios Systems disclosures. Every claim you can check is marked.</p>
+      <div class="banner">Synthetic corpus. Not a real issuer. Not investment advice.</div>
+    </header>
+
+    <section class="panel">
+      <label for="question">Question</label>
+      <textarea id="question" placeholder="What was fiscal 2024 revenue compared with fiscal 2023 revenue?"></textarea>
+      <div class="controls">
+        <div class="field">
+          <label for="mode">Retrieval</label>
+          <select id="mode">
+            <option value="hybrid">Hybrid + rerank</option>
+            <option value="bm25">BM25 only</option>
+            <option value="dense">Dense only</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="topk">Passages</label>
+          <input id="topk" type="number" min="1" max="10" value="5" />
+        </div>
+        <button class="ask" id="ask" type="button">Ask</button>
+      </div>
+      <div class="chips" id="chips"></div>
+    </section>
+
+    <section class="result" id="result">
+      <p class="empty" id="empty">A citation-backed answer will land here.</p>
+    </section>
+    <footer>
+      The reader is the offline extractive model unless <code>OPENAI_API_KEY</code> is set. Cost on that path is zero. Latency and token estimates are still recorded.
+    </footer>
+  </div>
+  <script>
+    const examples = [
+      "What was fiscal 2024 revenue compared with fiscal 2023 revenue?",
+      "When does the Quarry Ridge power purchase agreement expire?",
+      "What did Helios pay to acquire Northline Scheduler, and how much goodwill was recorded?",
+      "When does Helios expect HIR-4 customer sampling and general availability?"
+    ];
+    const chips = document.getElementById("chips");
+    const question = document.getElementById("question");
+    const result = document.getElementById("result");
+    const askButton = document.getElementById("ask");
+
+    examples.forEach((text) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = text;
+      button.addEventListener("click", () => {
+        question.value = text;
+        ask();
+      });
+      chips.appendChild(button);
+    });
+
+    askButton.addEventListener("click", ask);
+    question.addEventListener("keydown", (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") ask();
+    });
+
+    function renderAnswer(text) {
+      const fragment = document.createDocumentFragment();
+      const pattern = /\[(\d+)\]/g;
+      let last = 0;
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        fragment.append(document.createTextNode(text.slice(last, match.index)));
+        const cite = document.createElement("button");
+        cite.type = "button";
+        cite.className = "cite";
+        cite.textContent = match[0];
+        cite.dataset.marker = match[1];
+        cite.addEventListener("click", () => {
+          const card = document.getElementById("passage-" + match[1]);
+          if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+        fragment.append(cite);
+        last = match.index + match[0].length;
+      }
+      fragment.append(document.createTextNode(text.slice(last)));
+      return fragment;
+    }
+
+    function money(value) {
+      return "$" + Number(value || 0).toFixed(6);
+    }
+
+    async function ask() {
+      const text = question.value.trim();
+      if (!text) return;
+      askButton.disabled = true;
+      result.replaceChildren();
+      const pending = document.createElement("p");
+      pending.className = "empty";
+      pending.textContent = "Retrieving passages…";
+      result.appendChild(pending);
+      try {
+        const response = await fetch("/v1/answer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: text,
+            mode: document.getElementById("mode").value,
+            top_k: Number(document.getElementById("topk").value || 5)
+          })
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          const message = payload.detail || "The request failed.";
+          result.replaceChildren();
+          const error = document.createElement("div");
+          error.className = "error";
+          error.textContent = typeof message === "string" ? message : JSON.stringify(message);
+          result.appendChild(error);
+          return;
+        }
+        paint(payload);
+      } catch (err) {
+        result.replaceChildren();
+        const error = document.createElement("div");
+        error.className = "error";
+        error.textContent = "Could not reach the API. " + err.message;
+        result.appendChild(error);
+      } finally {
+        askButton.disabled = false;
+      }
+    }
+
+    function paint(payload) {
+      result.replaceChildren();
+      const answer = document.createElement("div");
+      answer.className = "panel answer";
+      answer.append(renderAnswer(payload.answer || ""));
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const bits = [
+        payload.provider + " / " + payload.model,
+        Math.round(payload.latency_ms) + " ms",
+        (payload.usage.prompt_tokens + payload.usage.completion_tokens) + " tokens",
+        money(payload.usage.cost_usd) + " (" + payload.usage.cost_basis + ")",
+        "trace " + payload.trace_id.slice(0, 8)
+      ];
+      if (payload.abstained) bits.unshift("abstained");
+      bits.forEach((bit) => {
+        const span = document.createElement("span");
+        span.textContent = bit;
+        meta.appendChild(span);
+      });
+      const passages = document.createElement("div");
+      passages.className = "passages";
+      (payload.retrieved || []).forEach((hit, index) => {
+        const card = document.createElement("article");
+        card.className = "passage";
+        card.id = "passage-" + (index + 1);
+        const title = document.createElement("h3");
+        title.textContent = "[" + (index + 1) + "] " + hit.chunk.section_title;
+        const id = document.createElement("div");
+        id.className = "id";
+        const score = Number(hit.score).toFixed(3);
+        id.textContent = hit.chunk.section_id + "  ·  score " + score + "  ·  " + (hit.chunk.metadata.source_type || "source");
+        const body = document.createElement("p");
+        body.textContent = hit.chunk.text;
+        card.append(title, id, body);
+        passages.appendChild(card);
+      });
+      result.append(answer, meta, passages);
+    }
+  </script>
+</body>
+</html>

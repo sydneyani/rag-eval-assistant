@@ -1,0 +1,9 @@
+services:
+  citeground:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      CITEGROUND_LLM_PROVIDER: auto
+      CITEGROUND_EMBEDDING_PROVIDER: auto
+      CITEGROUND_ROOT: /app

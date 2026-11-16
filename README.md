@@ -16,7 +16,7 @@ flowchart LR
     Chunk --> Emb[Embedder]
     Emb --> Store[Chunk index]
   end
-  subgraph query [Retrieval]
+  subgraph query [Query]
     Q[Question] --> BM25[BM25]
     Q --> Dense[Dense search]
     Store --> BM25
@@ -24,6 +24,9 @@ flowchart LR
     BM25 --> RRF[Reciprocal rank fusion]
     Dense --> RRF
     RRF --> Rerank[Feature reranker]
+    Rerank --> Gen[Grounded generator]
+    Gen --> API[FastAPI]
+    API --> UI[Web UI]
   end
 ```
 
@@ -41,6 +44,35 @@ python3 -m ruff check .
 ```
 
 `citeground-ingest` writes `data/index/` (`manifest.json`, `chunks.jsonl`, `vectors.npy`). That directory is gitignored. Rebuild it whenever the corpus or the chunker changes.
+
+Ask a question once the index exists:
+
+```bash
+python3 -m citeground.cli.serve
+```
+
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000). The page talks only to this API. A Streamlit client is the same thin view, and it needs the `ui` extra:
+
+```bash
+python3 -m pip install -e ".[ui]"
+python3 -m streamlit run ui/streamlit_app.py
+```
+
+`POST /v1/answer` takes `question`, `mode` (`hybrid`, `bm25`, or `dense`), and `top_k`. The response carries the answer, the citation markers, the passages, per-stage latency, token counts, and a cost figure. `GET /v1/health` and `GET /v1/metrics` report whether the index is loaded and what the process has spent. Each response sets `x-trace-id`, and the same id is appended to `data/traces/traces.jsonl`.
+
+With no API key the reader is an extractive offline model: it quotes the retrieved sentences that overlap the question and abstains when none do. It does not invent a number. Set `OPENAI_API_KEY` to send the same prompt to `gpt-4o-mini`. Cost on the offline path is zero. Cost on the OpenAI path is tokens times the list prices in `.env.example`, labeled `list-price-estimate`, not an invoice.
+
+```bash
+curl -s http://127.0.0.1:8000/v1/answer \
+  -H 'content-type: application/json' \
+  -d '{"question":"What was fiscal 2024 revenue compared with fiscal 2023 revenue?"}'
+```
+
+Docker builds the index on first boot and serves the same UI:
+
+```bash
+docker compose up --build
+```
 
 Useful overrides:
 
@@ -75,6 +107,8 @@ No strategy crosses a `##` section. Headings may set a stable id with a trailing
 - **BM25 is rebuilt on load.** This corpus is small enough that rebuilding postings is cheaper than operating an incremental inverted index. A persisted index belongs here once ingestion is incremental.
 - **Section labels, not chunk offsets.** Chunk boundaries move when the chunk size changes. Section ids do not. Recall measured on sections stays comparable across experiments.
 - **The corpus is synthetic and small.** That is a choice for reproducibility, not a claim that the same recall will hold on EDGAR. The loader reads any Markdown directory with the same front matter, so a real public corpus can be pointed at `CITEGROUND_CORPUS_DIR` without changing retrieval.
+- **The offline reader is extractive.** It will not paraphrase well, and it will abstain rather than fill a gap. That is the behavior you want when the alternative is a fluent wrong number. The OpenAI model sees the same grounded prompt.
+- **Traces are a JSONL file and an in-process counter.** Enough to see latency, tokens, and cost per answer. A collector such as OpenTelemetry is the export step, not a requirement for the accounting itself.
 
 ## Layout
 
@@ -83,6 +117,10 @@ src/citeground/ingest/       loader, chunkers, pipeline
 src/citeground/index/        on-disk index, NumPy and FAISS search
 src/citeground/retrieval/    BM25, fusion, rerank, hybrid retriever
 src/citeground/llm/          hashing embedder, OpenAI embedder, extractive offline reader
+src/citeground/generation/   grounded prompt, citation parsing
+src/citeground/api/          FastAPI app and the web UI
+src/citeground/observability/ JSON logs, traces, cost
+ui/streamlit_app.py          optional second client
 data/corpus/                 synthetic Helios disclosures
 ```
 
