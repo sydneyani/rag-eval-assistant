@@ -1,0 +1,131 @@
+{
+  "generated_at": "2026-11-16T17:17:26.781756+00:00",
+  "judge": "offline-deterministic",
+  "embedding_provider": "hashing",
+  "embedding_model": "signed-hash-tf",
+  "llm_provider": "mock",
+  "llm_model": "mock-extractive",
+  "dataset": "data/eval/qa.jsonl",
+  "n_questions": 28,
+  "n_answerable": 27,
+  "n_unanswerable": 1,
+  "label": "Offline run. No API key. Faithfulness and answer relevance are deterministic lexical proxies, not RAGAS model scores.",
+  "experiments": [
+    {
+      "name": "bm25-recursive-900",
+      "description": "Lexical baseline. Section-aware recursive chunks, no dense channel.",
+      "config": {
+        "name": "bm25-recursive-900",
+        "description": "Lexical baseline. Section-aware recursive chunks, no dense channel.",
+        "retrieval_mode": "bm25",
+        "chunker": "recursive",
+        "chunk_size": 900,
+        "chunk_overlap": 150,
+        "rerank": false,
+        "answer_k": 5,
+        "retrieve_k": 10
+      },
+      "metrics": {
+        "n": 28,
+        "n_answerable": 27,
+        "n_abstain": 1,
+        "recall_at_5": 0.9814814814814815,
+        "recall_at_10": 1.0,
+        "mrr": 0.9012345679012346,
+        "faithfulness": 1.0,
+        "answer_relevance": 0.6330575887356362,
+        "citation_support": 1.0,
+        "abstention_accuracy": 1.0,
+        "mean_latency_ms": 0.7699285714285714,
+        "extra": {}
+      }
+    },
+    {
+      "name": "dense-hash-recursive-900",
+      "description": "Hashed TF embeddings only. This is the offline stand-in for a dense embedder.",
+      "config": {
+        "name": "dense-hash-recursive-900",
+        "description": "Hashed TF embeddings only. This is the offline stand-in for a dense embedder.",
+        "retrieval_mode": "dense",
+        "chunker": "recursive",
+        "chunk_size": 900,
+        "chunk_overlap": 150,
+        "rerank": false,
+        "answer_k": 5,
+        "retrieve_k": 10
+      },
+      "metrics": {
+        "n": 28,
+        "n_answerable": 27,
+        "n_abstain": 1,
+        "recall_at_5": 0.9259259259259259,
+        "recall_at_10": 1.0,
+        "mrr": 0.8191358024691359,
+        "faithfulness": 1.0,
+        "answer_relevance": 0.6131318770677611,
+        "citation_support": 1.0,
+        "abstention_accuracy": 1.0,
+        "mean_latency_ms": 0.7488214285714285,
+        "extra": {}
+      }
+    },
+    {
+      "name": "hybrid-rerank-recursive-900",
+      "description": "BM25 plus hashed TF, fused with RRF, then the feature reranker. This is the default product stack.",
+      "config": {
+        "name": "hybrid-rerank-recursive-900",
+        "description": "BM25 plus hashed TF, fused with RRF, then the feature reranker. This is the default product stack.",
+        "retrieval_mode": "hybrid",
+        "chunker": "recursive",
+        "chunk_size": 900,
+        "chunk_overlap": 150,
+        "rerank": true,
+        "answer_k": 5,
+        "retrieve_k": 10
+      },
+      "metrics": {
+        "n": 28,
+        "n_answerable": 27,
+        "n_abstain": 1,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 0.9259259259259259,
+        "faithfulness": 1.0,
+        "answer_relevance": 0.6527596448793399,
+        "citation_support": 1.0,
+        "abstention_accuracy": 1.0,
+        "mean_latency_ms": 1.7660357142857142,
+        "extra": {}
+      }
+    },
+    {
+      "name": "hybrid-rerank-fixed-500",
+      "description": "The same hybrid stack with smaller fixed character windows.",
+      "config": {
+        "name": "hybrid-rerank-fixed-500",
+        "description": "The same hybrid stack with smaller fixed character windows.",
+        "retrieval_mode": "hybrid",
+        "chunker": "fixed",
+        "chunk_size": 500,
+        "chunk_overlap": 80,
+        "rerank": true,
+        "answer_k": 5,
+        "retrieve_k": 10
+      },
+      "metrics": {
+        "n": 28,
+        "n_answerable": 27,
+        "n_abstain": 1,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 0.9444444444444444,
+        "faithfulness": 0.9924812030075189,
+        "answer_relevance": 0.6489443648667732,
+        "citation_support": 1.0,
+        "abstention_accuracy": 1.0,
+        "mean_latency_ms": 1.453642857142857,
+        "extra": {}
+      }
+    }
+  ]
+}
