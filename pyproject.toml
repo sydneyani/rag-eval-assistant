@@ -39,6 +39,7 @@ dev = ["pytest>=8.3", "ruff>=0.7"]
 [project.scripts]
 citeground-ingest = "citeground.cli.ingest:main"
 citeground-serve = "citeground.cli.serve:main"
+citeground-eval = "citeground.cli.evaluate:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
